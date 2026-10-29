@@ -1,0 +1,25 @@
+# Zero-shot baseline: the bare signature, no demos, no optimization.
+name: baseline
+seed: 42
+
+model:
+  name: openai/gpt-4o-mini
+  temperature: 0.0
+  max_tokens: 512
+
+data:
+  dataset: coastalcph/lex_glue
+  subset: ledgar
+  max_chars: 2000        # truncate very long clauses before prompting
+  train_size: 300        # optimizer trainset (stratified sample)
+  val_size: 200          # optimizer valset (stratified sample)
+  test_size: 1000        # evaluation set (stratified sample of the test split)
+
+program:
+  module: predict        # predict | cot
+
+optimizer:
+  type: none
+
+inference:
+  num_threads: 16

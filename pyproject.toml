@@ -1,0 +1,32 @@
+[build-system]
+requires = ["setuptools>=68"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "lexeval"
+version = "0.1.0"
+description = "DSPy legal-clause classification on LEDGAR with batch inference and MLflow evaluation on Databricks"
+readme = "README.md"
+requires-python = ">=3.10"
+license = { text = "MIT" }
+dependencies = [
+    "dspy>=3.0",
+    "datasets>=2.19",
+    "pandas>=2.0",
+    "pyarrow>=14",
+    "mlflow>=2.14",
+    "pyyaml>=6.0",
+]
+
+[project.optional-dependencies]
+dev = ["pytest>=8"]
+
+[project.scripts]
+lexeval = "lexeval.cli:main"
+
+[tool.setuptools.packages.find]
+where = ["src"]
+
+[tool.pytest.ini_options]
+pythonpath = ["src"]
+testpaths = ["tests"]

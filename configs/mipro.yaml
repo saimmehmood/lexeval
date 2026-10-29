@@ -1,0 +1,28 @@
+# MIPROv2: joint instruction + demo optimization scored on the valset.
+name: miprov2
+seed: 42
+
+model:
+  name: openai/gpt-4o-mini
+  temperature: 0.0
+  max_tokens: 512
+
+data:
+  dataset: coastalcph/lex_glue
+  subset: ledgar
+  max_chars: 2000
+  train_size: 300
+  val_size: 200
+  test_size: 1000
+
+program:
+  module: predict
+
+optimizer:
+  type: miprov2
+  auto: light            # light | medium | heavy
+  max_bootstrapped_demos: 4
+  max_labeled_demos: 4
+
+inference:
+  num_threads: 16

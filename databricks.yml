@@ -1,0 +1,82 @@
+# Databricks Asset Bundle: `databricks bundle deploy -t dev && databricks bundle run lexeval_eval -t dev`
+bundle:
+  name: lexeval
+
+variables:
+  catalog:
+    default: main
+  schema:
+    default: lexeval
+  experiment:
+    default: /Shared/lexeval
+
+resources:
+  jobs:
+    lexeval_eval:
+      name: lexeval-ledgar-eval
+      job_clusters:
+        - job_cluster_key: cpu
+          new_cluster:
+            spark_version: 15.4.x-scala2.12
+            node_type_id: i3.xlarge
+            num_workers: 0
+            spark_conf:
+              spark.master: "local[*]"
+              spark.databricks.cluster.profile: singleNode
+            custom_tags:
+              ResourceClass: SingleNode
+      tasks:
+        - task_key: prepare_data
+          job_cluster_key: cpu
+          notebook_task:
+            notebook_path: ./notebooks/01_prepare_data.py
+            base_parameters:
+              config: ../configs/baseline.yaml
+              catalog: ${var.catalog}
+              schema: ${var.schema}
+
+        - task_key: baseline
+          depends_on: [{ task_key: prepare_data }]
+          job_cluster_key: cpu
+          notebook_task:
+            notebook_path: ./notebooks/02_run_inference.py
+            base_parameters:
+              config: ../configs/baseline.yaml
+              catalog: ${var.catalog}
+              schema: ${var.schema}
+              experiment: ${var.experiment}
+
+        - task_key: bootstrap_fewshot
+          depends_on: [{ task_key: prepare_data }]
+          job_cluster_key: cpu
+          notebook_task:
+            notebook_path: ./notebooks/02_run_inference.py
+            base_parameters:
+              config: ../configs/bootstrap.yaml
+              catalog: ${var.catalog}
+              schema: ${var.schema}
+              experiment: ${var.experiment}
+
+        - task_key: miprov2
+          depends_on: [{ task_key: prepare_data }]
+          job_cluster_key: cpu
+          notebook_task:
+            notebook_path: ./notebooks/02_run_inference.py
+            base_parameters:
+              config: ../configs/mipro.yaml
+              catalog: ${var.catalog}
+              schema: ${var.schema}
+              experiment: ${var.experiment}
+
+        - task_key: compare
+          depends_on: [{ task_key: baseline }, { task_key: bootstrap_fewshot }, { task_key: miprov2 }]
+          job_cluster_key: cpu
+          notebook_task:
+            notebook_path: ./notebooks/03_error_analysis.py
+            base_parameters:
+              experiment: ${var.experiment}
+
+targets:
+  dev:
+    mode: development
+    default: true
